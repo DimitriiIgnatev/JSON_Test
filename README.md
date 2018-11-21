@@ -13,6 +13,8 @@ export APIUSERTEST='apiusertest@*.com'
 
 pytest -s 15.py
 
+pytest -s --junitxml=pytests.xml --cov-report xml --cov-report term --cov-branch --cov=15 15.py
+
 ```python
 '{"status":"error","reason":8,"errorDetails":"market_direction: Market Direction is required / currency: Currency is required / amount: Amount is required / counter_currency: Counter Currency is required / value_date: Value Date is required"}'
 ```
