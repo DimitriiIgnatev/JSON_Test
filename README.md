@@ -47,4 +47,4 @@ Have been used:
  
 [Parameterization](https://blogs.msdn.microsoft.com/jledgard/2003/11/03/software-testing-6-good-tests-for-bad-parameters/)
 
-[Marking]
+[Marks](https://docs.pytest.org/en/latest/reference.html#marks)
