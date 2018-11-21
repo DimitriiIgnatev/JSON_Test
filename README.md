@@ -21,7 +21,9 @@ pytest -s 15.py
 
 For these tests, pytest was used with all the necessary options.
 
-FrameWorks:  
+FrameWorks: 
+
+[Pytest](http://pytest.org/latest/apiref.html)
 
 [PyHamcrest](https://github.com/hamcrest/PyHamcrest) 
 
@@ -29,9 +31,9 @@ FrameWorks:
 
 Have been used:
 
- [Test fixture](http://en.wikipedia.org/wiki/Test_fixture#Software)
+[Test fixture](http://en.wikipedia.org/wiki/Test_fixture#Software)
  
- ### Fixtures come to the rescue when needed:
+### Fixtures come to the rescue when needed:
  
  * generate test data;
  * prepare test bench;
@@ -40,4 +42,9 @@ Have been used:
  * to collect logs of the services or crashdump;
  * use system emulators or stubs;
  * and much more.
-  
+ 
+[Matcher](http://docs.oracle.com/javase/7/docs/api/java/util/regex/Matcher.html)
+ 
+[Parameterization](https://blogs.msdn.microsoft.com/jledgard/2003/11/03/software-testing-6-good-tests-for-bad-parameters/)
+
+[Marking]
