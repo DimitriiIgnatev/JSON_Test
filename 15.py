@@ -24,20 +24,22 @@ except KeyError:
     print "Please set the environment variable TEST_URL"
     sys.exit(1)
 
-apiusertest = 'apiusertest@kantox.com'
+try:
+    os.environ["APIUSERTEST"]
+except KeyError: 
+    print "Please set the environment variable APIUSERTEST"
+    sys.exit(1)
+
+
 
 #REAL_IP = s.gethostbyname(s.gethostname())
 
 demo_token_key = 'token'
-#demo_token = ''
-
-#open('token.txt', 'w').close()
-
 
 Srv = namedtuple('Server', 'host port link')
 Case = namedtuple('Case', 'user json')
 test_url=os.environ["TEST_URL"]
-
+apiusertest=os.environ["APIUSERTEST"]
 
 reverse_words = lambda words: [word[::-1] for word in words]
 
@@ -83,11 +85,18 @@ def Server(request):
         @property
         def uri(self):
             test_url=os.environ["TEST_URL"]
-#            test_link='api/companies/6XXDG5K6C/orders/create'
             test_link='api/login'
             host_port = test_url, 443, test_link
-#            return 'http://{host}:{port}/api/login'.format(**self.srv._asdict())
             return 'https://%s:%s/%s' % host_port
+
+        @property
+        def uri1(self):
+            test_url=os.environ["TEST_URL"]
+            test_link='api/companies/6XXDG5K6C/orders/create'
+            host_port = test_url, 443, test_link
+#            return 'http://{host}:{port}/{link}'.format(**self.srv._asdict())
+            return 'https://%s:%s/%s' % host_port
+
 
         def connect(self):
             self.conn = s.create_connection((self.srv.host, self.srv.port))
@@ -169,6 +178,7 @@ class DefaultCase:
         self.text = text
         self.req = dict(
             params={'login': self.text},
+# 'Content-Type: application/x-www-form-urlencoded; charset=utf-8',
             headers={'content-type': 'multipart/form-data'},
         )
 
@@ -207,7 +217,7 @@ class JSONCase(DefaultCase):
 
         self.match_string_of_reversed_words = all_of(
 #            has_content(is_json(has_entries('status', contains('success')))),
-            has_value(equal_to('success')),
+            has_content('success'),
             has_status(200),
         )
 
@@ -240,8 +250,6 @@ def my_token():
 
 #api/companies/6XXDG5K6C/orders/create
 # 'Content-Type: application/x-www-form-urlencoded; charset=utf-8',
-#    'x-access-token':'sdsdgdsggrtyrtghf'
-
 #@idparametrize('case', [Case(apiusertest), Case(apiusertest, json=True)])
 
 @idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
@@ -250,7 +258,7 @@ def my_token():
                                   for testclazz in [JSONCase] ])
 def test_server_request(case, Server):
 #    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
-    assert_that(requests.post(Server.uri, **case.req), case.match_string_of_reversed_words)
+    assert_that(requests.post(Server.uri1, **case.req), case.match_string_of_reversed_words)
 
 
 
