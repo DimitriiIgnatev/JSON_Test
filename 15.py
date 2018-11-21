@@ -163,12 +163,6 @@ def is_json(item_match):
         instance = basestring
     return AsJson(wrap_matcher(item_match))
 
-#def test_server_connect(socket, Server):
-#    assert_that(calling(socket.connect).with_args(Server.host_port), is_not(raises(SOCKET_ERROR)))
-
-#def test_server_response(Server):
-#    assert_that(requests.get(Server.uri), all_of(has_content('text not found'), has_status(501)))
-
 def idparametrize(name, values, fixture=False):
     return pytest.mark.parametrize(name, values, ids=map(repr, values), indirect=fixture)
 
@@ -189,7 +183,8 @@ class DefaultCase:
         )
 
     def __repr__(self):
-        return 'text="{text}", {cls}, {req}'.format(cls=self.__class__.__name__, text=self.text, req=self.req)
+#        return 'text="{text}", {cls}, {req}'.format(cls=self.__class__.__name__, text=self.text, req=self.req)
+        return 'text="{text}", {cls}'.format(cls=self.__class__.__name__, text=self.text)
 
 
 class DefaultCaseLogin(DefaultCase):
@@ -221,6 +216,11 @@ class JSONCase(DefaultCase):
             has_status(200),
         )
 
+def my_token():
+    f = open('token.txt', 'r')
+    demo_token = f.read()
+    f.close()
+    return demo_token
 
 # Need run it before every tests. We keep demo_token for next requests.
 
@@ -240,18 +240,7 @@ def test_server_login(case, Server):
     assert_that(demo_token)
 
 
-def my_token():
-    f = open('token.txt', 'r')
-    demo_token = f.read()
-    f.close()
-    return demo_token
-
-
-
-#api/companies/6XXDG5K6C/orders/create
-# 'Content-Type: application/x-www-form-urlencoded; charset=utf-8',
 #@idparametrize('case', [Case(apiusertest), Case(apiusertest, json=True)])
-
 @idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
 @idparametrize('case', [testclazz(login)
                                   for login in [my_token()]
@@ -262,12 +251,11 @@ def test_server_request(case, Server):
 
 
 
-#@idparametrize('case', [Case(apiusertest), Case(apiusertest, json=True)])
 
 #@idparametrize('Server', [Srv(test_url, 433)], fixture=True)
 #@idparametrize('case', [testclazz(login)
-#                                  for login in [apiusertest]
-#                                  for testclazz in [JSONCase] ])
+#                                  for login in apiusertest, example@example.com
+#                                  for testclazz in DefaultCase, LoginJSONCase ])
 #def test_server_request_bit(case, Server):
 #    json_str = j.loads(requests.post(Server.uri, **case.req).text)
 #    print json_str

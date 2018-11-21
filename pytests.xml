@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="1" name="pytest" skips="0" tests="2" time="0.798"><testcase classname="15" file="15.py" line="226" name="test_server_login[text=&quot;apiusertest@kantox.com&quot;, DefaultCaseLogin, {&apos;headers&apos;: {&apos;content-type&apos;: &apos;multipart/form-data&apos;, &apos;Accept&apos;: &apos;application/json&apos;}, &apos;params&apos;: {&apos;login&apos;: &apos;apiusertest@kantox.com&apos;, &apos;password&apos;: &apos;!2018abde123 &apos;}}-Server(host=&apos;demo.kantox.com&apos;, port=433, link=&apos;api/login&apos;)]" time="0.276123046875"></testcase><testcase classname="15" file="15.py" line="254" name="test_server_request[text=&quot;HSdbEmqTUJRXT3lklqeN&quot;, JSONCase, {&apos;headers&apos;: {&apos;X-ACCESS-TOKEN&apos;: &apos;HSdbEmqTUJRXT3lklqeN&apos;, &apos;content-type&apos;: &apos;multipart/form-data&apos;, &apos;Accept&apos;: &apos;application/json&apos;}, &apos;params&apos;: {&apos;login&apos;: &apos;HSdbEmqTUJRXT3lklqeN&apos;}}-Server(host=&apos;demo.kantox.com&apos;, port=433, link=&apos;api/companies/6XXDG5K6C/orders/create&apos;)]" time="0.153961181641"><failure message="AssertionError: 
+Expected: (an object with a property &apos;text&apos; matching a string containing &apos;success&apos; and an object with a property &apos;status_code&apos; matching &lt;200&gt;)
+     but: an object with a property &apos;text&apos; matching a string containing &apos;success&apos; property &apos;text&apos; was u&apos;{&quot;status&quot;:&quot;error&quot;,&quot;reason&quot;:8,&quot;errorDetails&quot;:&quot;market_direction: Market Direction is required / currency: Currency is required / amount: Amount is required / counter_currency: Counter Currency is required / value_date: Value Date is required&quot;}&apos;">case = text=&quot;HSdbEmqTUJRXT3lklqeN&quot;, JSONCase, {&apos;headers&apos;: {&apos;X-ACCESS-TOKEN&apos;: &apos;HSdbEmqTUJRXT3lklqeN&apos;, &apos;content-type&apos;: &apos;multipart/form-data&apos;, &apos;Accept&apos;: &apos;application/json&apos;}, &apos;params&apos;: {&apos;login&apos;: &apos;HSdbEmqTUJRXT3lklqeN&apos;}}
+Server = &lt;15.Dummy instance at 0x7f650f5d6ea8&gt;
+
+    @idparametrize(&apos;Server&apos;, [Srv(test_url, 433, &apos;api/companies/6XXDG5K6C/orders/create&apos;)], fixture=True)
+    @idparametrize(&apos;case&apos;, [testclazz(login)
+                                      for login in [my_token()]
+                                      for testclazz in [JSONCase] ])
+    def test_server_request(case, Server):
+    #    print is_json(has_entries(&apos;foo&apos;, contains(&apos;bar&apos;))).matches(&apos;{&quot;foo&quot;: [&quot;bar&quot;]}&apos;)
+&gt;       assert_that(requests.post(Server.uri1, **case.req), case.match_string_of_reversed_words)
+E       AssertionError: 
+E       Expected: (an object with a property &apos;text&apos; matching a string containing &apos;success&apos; and an object with a property &apos;status_code&apos; matching &lt;200&gt;)
+E            but: an object with a property &apos;text&apos; matching a string containing &apos;success&apos; property &apos;text&apos; was u&apos;{&quot;status&quot;:&quot;error&quot;,&quot;reason&quot;:8,&quot;errorDetails&quot;:&quot;market_direction: Market Direction is required / currency: Currency is required / amount: Amount is required / counter_currency: Counter Currency is required / value_date: Value Date is required&quot;}&apos;
+
+15.py:261: AssertionError</failure></testcase></testsuite>
