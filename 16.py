@@ -8,26 +8,27 @@ from hamcrest.core.helpers.wrap_matcher import wrap_matcher
 import requests
 import json as j
 from collections import namedtuple
-
+import allure
 
 SOCKET_ERROR = s.error
+ERROR_CONDITION = None
 
 try:
     os.environ["PASS"]
 except KeyError: 
-    print "Please set the environment variable PASS"
+    print ("Please set the environment variable PASS")
     sys.exit(1)
 
 try:
     os.environ["TEST_URL"]
 except KeyError: 
-    print "Please set the environment variable TEST_URL"
+    print ("Please set the environment variable TEST_URL")
     sys.exit(1)
 
 try:
     os.environ["APIUSERTEST"]
 except KeyError: 
-    print "Please set the environment variable APIUSERTEST"
+    print ("Please set the environment variable APIUSERTEST")
     sys.exit(1)
 
 
@@ -84,33 +85,12 @@ def Server(request):
 
         @property
         def uri(self):
-            test_url=os.environ["TEST_URL"]
-            test_link='api/login'
-            host_port = test_url, 443, test_link
-            return 'https://%s:%s/%s' % host_port
+            return 'https://{host}/{link}'.format(**self.srv._asdict())
 
-        @property
-        def uri1(self):
-#            test_url=os.environ["TEST_URL"]
-#            test_link='api/companies/6XXDG5K6C/orders/create'
-#            host_port = test_url, 443, test_link
-            self.host = self.srv[0]
-            self.port = self.srv[1]
-            self.link = self.srv[2]
-#            print self.link
-#            print self.srv._asdict()
-#            my_ret =  'https://{host}:{port}/{link}'.format(**self.srv._asdict())
-#            print my_ret
-#            return 'https://{host}:{port}/{link}'.format(**self.srv._asdict())
-            host_port = self.host, self.port, self.link
-            print 'https://%s:%s/%s' % host_port
-            return 'https://%s:%s/%s' % host_port
-
-
-#        def connect(self):
-#            self.conn = s.create_connection((self.srv.host, self.srv.port))
-#            self.conn.sendall('HEAD /404 HTTP/1.0\r\n\r\n')
-#            self.conn.recv(1024)
+        def connect(self):
+            self.conn = s.create_connection((self.srv.host, self.srv.port))
+            self.conn.sendall('HEAD /404 HTTP/1.0\r\n\r\n')
+            self.conn.recv(1024)
 
         def close(self):
             if self.conn:
@@ -119,9 +99,8 @@ def Server(request):
 
 
     res = Dummy(request.param)
-#    yield res
-    return Dummy(request.param)
-#    res.close()
+    yield res
+    res.close()
 
 
 @pytest.yield_fixture(scope='function', autouse=True)
@@ -174,22 +153,27 @@ def is_json(item_match):
     return AsJson(wrap_matcher(item_match))
 
 def idparametrize(name, values, fixture=False):
-#    return pytest.mark.parametrize(name, values, ids=map(repr, values), indirect=fixture)
-    return pytest.mark.parametrize(name, values, indirect=fixture)
+    return pytest.mark.parametrize(name, values, ids=list(map(repr, values)), indirect=fixture)
+#    return pytest.mark.parametrize(name, values, indirect=fixture)
+
+@pytest.fixture
+def error_if_wat(request):
+    assert request.getfuncargvalue('Server').srv != ERROR_CONDITION
+
+
+# 'Content-Type: application/x-www-form-urlencoded; charset=utf-8',
+#            headers={'content-type': 'multipart/form-data'},
 
 class DefaultCase:
     def __init__(self, text):
-        self.password=os.environ["PASS"]
         self.text = text
         self.req = dict(
-            params={'login': self.text},
-# 'Content-Type: application/x-www-form-urlencoded; charset=utf-8',
-#            headers={'content-type': 'multipart/form-data'},
             headers={'content-type': 'application/x-www-form-urlencoded; charset=utf-8'},
+            params={},
         )
 
-        self.match_string_of_reversed_words = all_of(
 #            has_content(contains_reversed_words(text.split())),
+        self.match_string_of_reversed_words = all_of(
             has_content('success'),
             has_status(200),
         )
@@ -202,6 +186,7 @@ class DefaultCase:
 class DefaultCaseLogin(DefaultCase):
     def __init__(self, text):
         DefaultCase.__init__(self, text)
+        self.password=os.environ["PASS"]
         self.req['params'].update({'login': self.text, 'password': self.password})
         self.req['headers'].update({'content-type' : 'multipart/form-data'})
         self.req['headers'].update({'Accept': 'application/json'})
@@ -226,6 +211,7 @@ class JSONCase(DefaultCase):
 #            has_content(is_json(has_entries('status', contains('success')))),
             has_content('success'),
             has_status(200),
+            False,
         )
 
 def my_token():
@@ -244,7 +230,7 @@ def test_server_login(case, Server):
     res_req = requests.post(Server.uri, **case.req)
     json_str = j.loads(res_req.text)
     demo_token = json_str[demo_token_key]
-    print demo_token
+    print (demo_token)
     f = open('token.txt', 'w')
     f.write(demo_token)
     f.close()
@@ -252,7 +238,7 @@ def test_server_login(case, Server):
     assert_that(demo_token)
 
 #@idparametrize('case', [Case(apiusertest), Case(apiusertest, json=True)])
-@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
+@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create'), Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
 #                                  for testclazz in [JSONCase] ])
@@ -260,19 +246,48 @@ def test_server_login(case, Server):
 def test_server_request(case, Server):
 #    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
 #    res_req = requests.post(Server.uri1, **case.req)
-#    print res_req
-    assert_that(requests.post(Server.uri1, **case.req), case.match_string_of_reversed_words)
+#    print res_req.text
+    assert_that(requests.post(Server.uri, **case.req), case.match_string_of_reversed_words)
 
 
 
 
-#@idparametrize('Server', [Srv(test_url, 433)], fixture=True)
+#@idparametrize('Server', [Srv(test_url, 433, '')], fixture=True)
 #@idparametrize('case', [testclazz(login)
 #                                  for login in apiusertest, example@example.com
 #                                  for testclazz in DefaultCase, LoginJSONCase ])
-#def test_server_request_bit(case, Server):
-#    json_str = j.loads(requests.post(Server.uri, **case.req).text)
-#    print json_str
-#    demo_token = json_str[demo_token_key]
-#    print demo_token
-#    assert_that(requests.post(Server.uri, **case.req), case.match_string_of_reversed_words)
+#def test_server_request_get(case, Server):
+#    assert_that(requests.get(Server.uri, **case.req), case.match_string_of_reversed_words)
+
+
+SERVER_CASES = [
+    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
+    Srv(test_url, 80, ''),
+    Srv(test_url, 80, 'api/companies/6XXDG5K6C/orders/create'),
+    ERROR_CONDITION,
+]
+@idparametrize('Server', SERVER_CASES, fixture=True)
+@idparametrize('case', [JSONCase(my_token())])
+def test_server(case, Server, error_if_wat):
+    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+    """
+    Step 1:
+        Try connect to host, port,
+        and check for not raises SOCKET_ERROR.
+
+    Step 2:
+        Check for server response 'text not found' message.
+        Response status should be equal to 501.
+    """
+    with allure.step('Try connect'):
+        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+
+    with allure.step('Check response'):
+        response = requests.post(Server.uri, **case.req)
+#        allure.attach('response_body', response.text, type=AttachmentType.TEXT, type='html')
+        allure.attach('response_body', response.text)
+#        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4), type='json')
+        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
+        allure.attach('response_status', str(response.status_code))
+        assert_that(response, all_of(has_content('text not found'), has_status(501)))
+        assert_that(response, case.match_string_of_reversed_words)
