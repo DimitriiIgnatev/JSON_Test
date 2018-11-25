@@ -234,7 +234,7 @@ class JSONCaseData(DefaultCase):
         )
 
 def my_token():
-    f = open('token.txt', 'r')
+    f = open('/home/ubuntu/JSON_Test/token.txt', 'r')
     demo_token = f.read()
     f.close()
     return demo_token
@@ -250,7 +250,7 @@ def test_server_login(case, Server):
     json_str = j.loads(res_req.text)
     demo_token = json_str[demo_token_key]
     print (demo_token)
-    f = open('token.txt', 'w')
+    f = open('/home/ubuntu/JSON_Test/token.txt', 'w')
     f.write(demo_token)
     f.close()
 #    assert_that(demo_token, has_length(20))
