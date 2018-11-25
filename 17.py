@@ -256,7 +256,7 @@ def test_server_login(case, Server):
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-data = {'orderRef':141, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '141.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+data = {'orderRef':142, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '142.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
@@ -310,6 +310,7 @@ def test_server(case, Server, error_if_wat):
         allure.attach('response_body', response.text)
 #        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4), type='json')
         allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
+        allure.attach('response_json', response.json)
         allure.attach('response_status', str(response.status_code))
 #        assert_that(response, all_of(has_content('text not found'), has_status(501)))
         assert_that(response, case.match_string)
