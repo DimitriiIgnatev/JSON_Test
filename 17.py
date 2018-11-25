@@ -88,7 +88,8 @@ def Server(request):
             return 'https://{host}/{link}'.format(**self.srv._asdict())
 
         def connect(self):
-            self.conn = s.create_connection((self.srv.host, self.srv.port))
+#            self.conn = s.create_connection((self.srv.host, self.srv.port))
+            self.conn = s.create_connection((self.srv.host, 80))
             self.conn.sendall('HEAD /404 HTTP/1.0\r\n\r\n')
             self.conn.recv(1024)
 
@@ -255,18 +256,19 @@ def test_server_login(case, Server):
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-data = {'orderRef':128, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '111.20', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+data = {'orderRef':132, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '132.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
 #                                  for testclazz in [JSONCase] ])
 #@idparametrize('case', [JSONCase(my_token())])
 #@idparametrize('case', [JSONCase(my_token()), JSONCaseData(my_token(), data)])
-@idparametrize('case', [JSONCaseData(my_token(), data)])
-@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
-def test_server_request(case, Server):
-#    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
-    assert_that(requests.post(Server.uri, **case.req), case.match_string)
+
+
+#@idparametrize('case', [JSONCaseData(my_token(), data)])
+#@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
+#def test_server_request(case, Server):
+#    assert_that(requests.post(Server.uri, **case.req), case.match_string)
 
 
 
@@ -276,37 +278,37 @@ def test_server_request(case, Server):
 #                                  for login in apiusertest, example@example.com
 #                                  for testclazz in DefaultCase, LoginJSONCase ])
 #def test_server_request_get(case, Server):
+#    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
 #    assert_that(requests.get(Server.uri, **case.req), case.match_string_of_reversed_words)
 
 
-#SERVER_CASES = [
-#    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
-#    Srv(test_url, 80, ''),
-#    Srv(test_url, 80, 'api/companies/6XXDG5K6C/orders/create'),
-#    ERROR_CONDITION,
-#]
-#@idparametrize('Server', SERVER_CASES, fixture=True)
-#@idparametrize('case', [JSONCase(my_token())])
-#def test_server(case, Server, error_if_wat):
-#    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
-#    """
-#    Step 1:
-#        Try connect to host, port,
-#        and check for not raises SOCKET_ERROR.
-#
-#    Step 2:
-#        Check for server response 'text not found' message.
-#        Response status should be equal to 501.
-#    """
-#    with allure.step('Try connect'):
-#        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
-#
-#    with allure.step('Check response'):
-#        response = requests.post(Server.uri, **case.req)
-##        allure.attach('response_body', response.text, type=AttachmentType.TEXT, type='html')
-#        allure.attach('response_body', response.text)
-##        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4), type='json')
-#        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
-#        allure.attach('response_status', str(response.status_code))
+SERVER_CASES = [
+    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
+    Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create'),
+    ERROR_CONDITION,
+]
+@idparametrize('Server', SERVER_CASES, fixture=True)
+@idparametrize('case', [JSONCaseData(my_token(), data)])
+def test_server(case, Server, error_if_wat):
+    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+    """
+    Step 1:
+        Try connect to host, port,
+        and check for not raises SOCKET_ERROR.
+
+    Step 2:
+        Check for server response 'data' message.
+        Response status should be equal to 501.
+    """
+    with allure.step('Try connect'):
+        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+
+    with allure.step('Check response'):
+        response = requests.post(Server.uri, **case.req)
+#        allure.attach('response_body', response.text, type=AttachmentType.TEXT, type='html')
+        allure.attach('response_body', response.text)
+#        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4), type='json')
+        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
+        allure.attach('response_status', str(response.status_code))
 #        assert_that(response, all_of(has_content('text not found'), has_status(501)))
-#        assert_that(response, case.match_string_of_reversed_words)
+        assert_that(response, case.match_string)
