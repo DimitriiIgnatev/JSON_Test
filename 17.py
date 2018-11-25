@@ -256,7 +256,7 @@ def test_server_login(case, Server):
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-data = {'orderRef':140, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '140.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+data = {'orderRef':141, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '141.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
