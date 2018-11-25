@@ -38,7 +38,7 @@ except KeyError:
 demo_token_key = 'token'
 
 Srv = namedtuple('Server', 'host port link')
-Case = namedtuple('Case', 'user json')
+Case = namedtuple('Case', 'token data')
 test_url=os.environ["TEST_URL"]
 apiusertest=os.environ["APIUSERTEST"]
 
@@ -208,7 +208,23 @@ class JSONCase(DefaultCase):
 #        self.req['params'].update({'login': self.text, 'password': self.password})
         self.req['headers'].update({'Accept': 'application/json'})
         self.req['headers'].update({'X-ACCESS-TOKEN': self.text })
-        self.req['data'].update({'orderRef':125, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '150.20', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'})
+#        self.req['data'].update({'orderRef':126, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '100.20', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'})
+
+        self.match_string = all_of(
+#            has_content(is_json(has_entries('status', contains('success')))),
+            has_content('success'),
+            has_status(200),
+        )
+
+
+class JSONCaseData(DefaultCase):
+    def __init__(self, text, data):
+        DefaultCase.__init__(self, text)
+#        self.req['params'].update({'login': self.text, 'password': self.password})
+        self.req['headers'].update({'Accept': 'application/json'})
+        self.req['headers'].update({'X-ACCESS-TOKEN': self.text })
+#        self.req['data'].update({'orderRef':126, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '100.20', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'})
+        self.req['data'].update(data)
 
         self.match_string = all_of(
 #            has_content(is_json(has_entries('status', contains('success')))),
@@ -239,16 +255,17 @@ def test_server_login(case, Server):
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-#@idparametrize('case', [Case(apiusertest), Case(apiusertest, json=True)])
-@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
+data = {'orderRef':128, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '111.20', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
 #                                  for testclazz in [JSONCase] ])
-@idparametrize('case', [JSONCase(my_token())])
+#@idparametrize('case', [JSONCase(my_token())])
+#@idparametrize('case', [JSONCase(my_token()), JSONCaseData(my_token(), data)])
+@idparametrize('case', [JSONCaseData(my_token(), data)])
+@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
 def test_server_request(case, Server):
 #    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
-#    res_req = requests.post(Server.uri1, **case.req)
-#    print res_req.text
     assert_that(requests.post(Server.uri, **case.req), case.match_string)
 
 
