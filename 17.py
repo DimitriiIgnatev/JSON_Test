@@ -170,6 +170,7 @@ class DefaultCase:
         self.req = dict(
             headers={'content-type': 'application/x-www-form-urlencoded; charset=utf-8'},
 #            data={'orderRef':123, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': 250200.20, 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+            data={},
             params={},
         )
 
@@ -191,7 +192,6 @@ class DefaultCaseLogin(DefaultCase):
         self.req['params'].update({'login': self.text, 'password': self.password})
         self.req['headers'].update({'content-type' : 'multipart/form-data'})
         self.req['headers'].update({'Accept': 'application/json'})
-        self.req['data'].update({'orderRef':123, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': 250200.20, 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'})
 
         self.match_login_token = all_of(
             has_status(200),
@@ -208,12 +208,12 @@ class JSONCase(DefaultCase):
 #        self.req['params'].update({'login': self.text, 'password': self.password})
         self.req['headers'].update({'Accept': 'application/json'})
         self.req['headers'].update({'X-ACCESS-TOKEN': self.text })
+        self.req['data'].update({'orderRef':125, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '150.20', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'})
 
-        self.match_string_of_reversed_words = all_of(
+        self.match_string = all_of(
 #            has_content(is_json(has_entries('status', contains('success')))),
             has_content('success'),
             has_status(200),
-            False,
         )
 
 def my_token():
@@ -240,7 +240,7 @@ def test_server_login(case, Server):
     assert_that(demo_token)
 
 #@idparametrize('case', [Case(apiusertest), Case(apiusertest, json=True)])
-@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create'), Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
+@idparametrize('Server', [Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create')], fixture=True)
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
 #                                  for testclazz in [JSONCase] ])
@@ -249,7 +249,7 @@ def test_server_request(case, Server):
 #    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
 #    res_req = requests.post(Server.uri1, **case.req)
 #    print res_req.text
-    assert_that(requests.post(Server.uri, **case.req), case.match_string_of_reversed_words)
+    assert_that(requests.post(Server.uri, **case.req), case.match_string)
 
 
 
@@ -262,34 +262,34 @@ def test_server_request(case, Server):
 #    assert_that(requests.get(Server.uri, **case.req), case.match_string_of_reversed_words)
 
 
-SERVER_CASES = [
-    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
-    Srv(test_url, 80, ''),
-    Srv(test_url, 80, 'api/companies/6XXDG5K6C/orders/create'),
-    ERROR_CONDITION,
-]
-@idparametrize('Server', SERVER_CASES, fixture=True)
-@idparametrize('case', [JSONCase(my_token())])
-def test_server(case, Server, error_if_wat):
-    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
-    """
-    Step 1:
-        Try connect to host, port,
-        and check for not raises SOCKET_ERROR.
-
-    Step 2:
-        Check for server response 'text not found' message.
-        Response status should be equal to 501.
-    """
-    with allure.step('Try connect'):
-        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
-
-    with allure.step('Check response'):
-        response = requests.post(Server.uri, **case.req)
-#        allure.attach('response_body', response.text, type=AttachmentType.TEXT, type='html')
-        allure.attach('response_body', response.text)
-#        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4), type='json')
-        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
-        allure.attach('response_status', str(response.status_code))
-        assert_that(response, all_of(has_content('text not found'), has_status(501)))
-        assert_that(response, case.match_string_of_reversed_words)
+#SERVER_CASES = [
+#    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
+#    Srv(test_url, 80, ''),
+#    Srv(test_url, 80, 'api/companies/6XXDG5K6C/orders/create'),
+#    ERROR_CONDITION,
+#]
+#@idparametrize('Server', SERVER_CASES, fixture=True)
+#@idparametrize('case', [JSONCase(my_token())])
+#def test_server(case, Server, error_if_wat):
+#    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+#    """
+#    Step 1:
+#        Try connect to host, port,
+#        and check for not raises SOCKET_ERROR.
+#
+#    Step 2:
+#        Check for server response 'text not found' message.
+#        Response status should be equal to 501.
+#    """
+#    with allure.step('Try connect'):
+#        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+#
+#    with allure.step('Check response'):
+#        response = requests.post(Server.uri, **case.req)
+##        allure.attach('response_body', response.text, type=AttachmentType.TEXT, type='html')
+#        allure.attach('response_body', response.text)
+##        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4), type='json')
+#        allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
+#        allure.attach('response_status', str(response.status_code))
+#        assert_that(response, all_of(has_content('text not found'), has_status(501)))
+#        assert_that(response, case.match_string_of_reversed_words)
