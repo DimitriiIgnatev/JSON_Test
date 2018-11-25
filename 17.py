@@ -256,7 +256,7 @@ def test_server_login(case, Server):
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-data = {'orderRef':135, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '135.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+data = {'orderRef':138, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '138.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
@@ -281,16 +281,17 @@ data = {'orderRef':135, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '
 #    print is_json(has_entries('foo', contains('bar'))).matches('{"foo": ["bar"]}')
 #    assert_that(requests.get(Server.uri, **case.req), case.match_string_of_reversed_words)
 
+#    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+
 
 SERVER_CASES = [
     pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
     Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create'),
-    ERROR_CONDITION,
+#    ERROR_CONDITION,
 ]
 @idparametrize('Server', SERVER_CASES, fixture=True)
 @idparametrize('case', [JSONCaseData(my_token(), data)])
 def test_server(case, Server, error_if_wat):
-    assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
     """
     Step 1:
         Try connect to host, port,
@@ -300,8 +301,8 @@ def test_server(case, Server, error_if_wat):
         Check for server response 'data' message.
         Response status should be equal to 501.
     """
-    with allure.step('Try connect'):
-        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
+#    with allure.step('Try connect'):
+#        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
 
     with allure.step('Check response'):
         response = requests.post(Server.uri, **case.req)
