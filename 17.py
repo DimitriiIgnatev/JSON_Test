@@ -230,6 +230,20 @@ class JSONCaseData(DefaultCase):
         self.match_string = all_of(
 #            has_content(is_json(has_entries('status', contains('success')))),
             has_content('success'),
+            has_content('orderStatus'),
+            has_content('yourOrderRef'),
+            has_content('kantoxOrderRef'),
+            has_content('counterCurrency'),
+            has_content('amount'),
+            has_content('currency'),
+            has_content('valueDate'),
+            has_content('beneficiaryAccountRef'),
+            has_content('marketDirection'),
+            has_content('settlementStatus'),
+            has_content('counterValue'),
+            has_content('rate'),
+            has_content('ratePair'),
+            has_content('executionTimeStamp'),
             has_status(200),
         )
 
@@ -256,7 +270,7 @@ def test_server_login(case, Server):
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-data = {'orderRef':145, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '145.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+data = {'orderRef':146, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '146.00', 'counterCurrency': 'USD','beneficiaryAccountRef':'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 #@idparametrize('case', [testclazz(login)
 #                                  for login in [my_token()]
@@ -285,7 +299,7 @@ data = {'orderRef':145, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '
 
 
 SERVER_CASES = [
-    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
+#    pytest.mark.xfail(Srv('::1', 80, ''), reason='ipv6 desn`t work, use `::` instead of `0.0.0.0`'),
     Srv(test_url, 433, 'api/companies/6XXDG5K6C/orders/create'),
 #    ERROR_CONDITION,
 ]
