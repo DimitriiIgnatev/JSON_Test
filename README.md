@@ -11,21 +11,21 @@ export TEST_URL='demo.*.com'
 
 export APIUSERTEST='apiusertest@*.com'
 
-pytest -s 15.py
+pytest -v test_json.py
 
-pytest -s --junitxml=pytests.xml --cov-report xml --cov-report term --cov-branch --cov=15 15.py
+pytest -s --junitxml=pytests.xml --cov-report xml --cov-report term --cov-branch --cov=test_json test_json.py
 
-pytest -s --collect-only 15.py
+pytest -v --collect-only test_json.py
 
-pytest -s --fulltrace 15.py
+pytest -v --fulltrace test_json.py
 
-pytest -v --alluredir=/var/tmp/allure/ 16.py
+pytest -v --alluredir=/var/tmp/allure/ test_json.py
 
 /home/linuxbrew/.linuxbrew/bin/allure generate -o /var/tmp/allure/output/ -- /var/tmp/allure/
 
 
 ```python
-'{"status":"error","reason":8,"errorDetails":"market_direction: Market Direction is required / currency: Currency is required / amount: Amount is required / counter_currency: Counter Currency is required / value_date: Value Date is required"}'
+'{"status":"success","orderStatus":"created and executed","yourOrderRef":"147","kantoxOrderRef":"O-6G7NZM3GY","currency":"EUR","counterCurrency":"USD","amount":147.0,"valueDate":"30/11/2018","beneficiaryAccountRef":"BA-MVBDZBL3Z","marketDirection":"buy","settlementStatus":"Creating instructions","counterValue":166.71,"rate":1.1341,"ratePair":"EUR/USD","executionTimeStamp":"27/11/2018 00:19:20 UTC"}'
 ```
 
 ## Description
