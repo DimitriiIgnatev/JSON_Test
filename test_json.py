@@ -274,7 +274,7 @@ def test_server_login(case, api_server): # pylint: disable=redefined-outer-name
     assert_that(demo_token)
 
 # DATA = my_data()
-DATA = {'orderRef': 150, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '150.00', \
+DATA = {'orderRef': 151, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '151.00', \
 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', \
 'valueDate': '30/11/2018'}
 
