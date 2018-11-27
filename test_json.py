@@ -239,6 +239,14 @@ def my_token():
     token_file.close()
     return demo_token
 
+def my_data():
+    """Open and read from data file."""
+    data_file = open('data.txt', 'r')
+    demo_data = token_file.read()
+    data_file.close()
+    return demo_data
+
+
 # Need run it before every tests. We keep demo_token for next requests.
 
 @idparametrize('api_server', [Srv(TEST_URL, 433, 'api/login')], fixture=True)
@@ -260,7 +268,8 @@ def test_server_login(case, api_server): # pylint: disable=redefined-outer-name
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-DATA = {'orderRef': 148, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '148.00', 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+# DATA = my_data()
+DATA = {'orderRef': 149, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '149.00', 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 SERVER_CASES = [
     Srv(TEST_URL, 433, 'api/companies/6XXDG5K6C/orders/create'),
@@ -269,13 +278,15 @@ SERVER_CASES = [
 @idparametrize('case', [JSONCaseData(my_token(), DATA)])
 def test_server(case, api_server): # pylint: disable=redefined-outer-name
     """
-    Step 1:
+    Step 1: (Skipped)
         Try connect to host, port,
         and check for not raises SOCKET_ERROR.
 
     Step 2:
+        Test of create order
+        API - /companies/6XXDG5K6C/orders/create
         Check for server response 'data' message.
-        Response status should be equal to 501.
+        Response status should be equal to 200.
     """
 #    with allure.step('Try connect'):
 #        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
