@@ -16,6 +16,7 @@ from hamcrest import has_entries, has_property, equal_to, \
 all_of, contains_string, assert_that, contains
 # pylint: disable=wildcard-import
 from hamcrest.core.base_matcher import BaseMatcher
+#from hamcrest.core.core.isinstanceof import IsInstanceOf
 from hamcrest.core.helpers.wrap_matcher import wrap_matcher
 import requests
 import allure
@@ -48,11 +49,15 @@ Case = namedtuple('Case', 'token data')
 TEST_URL = os.environ["TEST_URL"]
 APIUSERTEST = os.environ["APIUSERTEST"]
 
+#class BaseModifyMatcher(IsInstanceOf):
 class BaseModifyMatcher(BaseMatcher):
     """A matcher that modify check value and pass it following the specified matcher."""
     def __init__(self, item_matcher):
-#        BaseMatcher.__init__(self, item_matcher)
         self.item_matcher = item_matcher
+        self.new_item = ''
+        self.modify = item_matcher
+        self.description = ''
+        self.instance = ''
 
     def _matches(self, item):
         if isinstance(item, self.instance) and item:
@@ -89,7 +94,7 @@ def api_server(request):
         """Just any port for test"""
         def __init__(self, srv):
             self.srv = srv
-            self.conn = None
+            self.sock = None
 
         @property
         def uri(self):
@@ -98,14 +103,14 @@ def api_server(request):
 
         def connect(self):
             """Connection for test from parameters"""
-            self.conn = s.create_connection((self.srv.host, self.srv.port))
-            self.conn.sendall('HEAD /404 HTTP/1.0\r\n\r\n')
-            self.conn.recv(1024)
+            self.sock = s.create_connection((self.srv.host, self.srv.port))
+            self.sock.sendall('HEAD /404 HTTP/1.0\r\n\r\n') # pylint: disable=no-member
+            self.sock.recv(1024) # pylint: disable=no-member
 
         def close(self):
             """Close connection after responce"""
-            if self.conn:
-                self.conn.close()
+            if self.sock:
+                self.sock.close()
 
 
 
@@ -242,7 +247,7 @@ def my_token():
 def my_data():
     """Open and read from data file."""
     data_file = open('data.txt', 'r')
-    demo_data = token_file.read()
+    demo_data = data_file.read()
     data_file.close()
     return demo_data
 
@@ -269,7 +274,9 @@ def test_server_login(case, api_server): # pylint: disable=redefined-outer-name
     assert_that(demo_token)
 
 # DATA = my_data()
-DATA = {'orderRef': 149, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '149.00', 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
+DATA = {'orderRef': 150, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '150.00', \
+'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', \
+'valueDate': '30/11/2018'}
 
 SERVER_CASES = [
     Srv(TEST_URL, 433, 'api/companies/6XXDG5K6C/orders/create'),
