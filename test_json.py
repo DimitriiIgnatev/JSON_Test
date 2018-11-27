@@ -12,7 +12,9 @@ import socket as s
 import json as j
 from collections import namedtuple
 import pytest
-from hamcrest import * # pylint: disable=wildcard-import
+from hamcrest import has_entries, has_property, equal_to, \
+all_of, contains_string, assert_that, contains
+# pylint: disable=wildcard-import
 from hamcrest.core.base_matcher import BaseMatcher
 from hamcrest.core.helpers.wrap_matcher import wrap_matcher
 import requests
@@ -74,27 +76,34 @@ class BaseModifyMatcher(BaseMatcher):
 
 @pytest.yield_fixture
 def socket():
+    """Open internet socket for test listen server."""
     _socket = s.socket(s.AF_INET, s.SOCK_STREAM)
     yield _socket
     _socket.close()
 
+
 @pytest.yield_fixture
-def Server(request):
-    class Dummy:
-        def  __init__(self, srv):
+def api_server(request):
+    """Maked link to http server."""
+    class Dummy(object): # pylint: disable=too-few-public-methods
+        """Just any port for test"""
+        def __init__(self, srv):
             self.srv = srv
             self.conn = None
 
         @property
         def uri(self):
+            """Just any host:port/link for test from parameters"""
             return 'https://{host}/{link}'.format(**self.srv._asdict())
 
         def connect(self):
+            """Connection for test from parameters"""
             self.conn = s.create_connection((self.srv.host, self.srv.port))
             self.conn.sendall('HEAD /404 HTTP/1.0\r\n\r\n')
             self.conn.recv(1024)
 
         def close(self):
+            """Close connection after responce"""
             if self.conn:
                 self.conn.close()
 
@@ -107,35 +116,21 @@ def Server(request):
 
 @pytest.yield_fixture(scope='function', autouse=True)
 def collect_logs(request):
-    if 'Server' in request.fixturenames:
+    """Add info to log file."""
+    if 'api_server' in request.fixturenames:
 #        with some_logfile_collector(SERVER_LOCATION):
         yield
     else:
         yield
 
-
-# In that lib payload content in param text, when we get it, we start parsing
 def has_content(item):
+    """In that lib payload content in param text, when we get it, we start parsing."""
     return has_property('text', item if isinstance(item, BaseMatcher) else contains_string(item))
 
 
 def has_status(status):
+    """Check status code."""
     return has_property('status_code', equal_to(status))
-
-
-def contains_reversed_words(item_match):
-    """
-    Example:
-        >>> from hamcrest import *
-        >>> contains_reversed_words(contains_inanyorder('oof', 'rab')).matches("foo bar")
-        True
-    """
-    class IsStringOfReversedWords(BaseModifyMatcher):
-        description = 'string of reversed words'
-        modify = lambda _, item: reverse_words(item.split())
-        instance = basestring
-
-    return IsStringOfReversedWords(wrap_matcher(item_match))
 
 def is_json(item_match):
     """
@@ -145,20 +140,21 @@ def is_json(item_match):
         True
     """
     class AsJson(BaseModifyMatcher):
+        """Add our matcher for JSON data"""
         description = 'json with'
         modify = lambda _, item: j.loads(item)
         instance = basestring
     return AsJson(wrap_matcher(item_match))
 
 def idparametrize(name, values, fixture=False):
+    """
+    Auxiliary decorator idparametrize, in which we use the additional parameter ids=
+    of decorator pytest.mark.parametrize.
+    """
     return pytest.mark.parametrize(name, values, ids=list(map(repr, values)), indirect=fixture)
 
-@pytest.fixture
-def error_if_wat(request):
-    assert request.getfuncargvalue('Server').srv != ERROR_CONDITION
-
-
-class DefaultCase:
+class DefaultCase(object): # pylint: disable=too-few-public-methods
+    """Default class for response analysis."""
     def __init__(self, text):
         self.text = text
         self.req = dict(
@@ -167,7 +163,7 @@ class DefaultCase:
             params={},
         )
 
-        self.match_string_of_reversed_words = all_of(
+        self.match_string = all_of(
             has_content('success'),
             has_status(200),
         )
@@ -178,7 +174,8 @@ class DefaultCase:
         return 'text="{text}", {cls}'.format(cls=self.__class__.__name__, text=self.text)
 
 
-class DefaultCaseLogin(DefaultCase):
+class DefaultCaseLogin(DefaultCase): # pylint: disable=too-few-public-methods
+    """Class for login analysis."""
     def __init__(self, text):
         DefaultCase.__init__(self, text)
         self.password = os.environ["PASS"]
@@ -195,19 +192,21 @@ class DefaultCaseLogin(DefaultCase):
 
 
 
-class JSONCase(DefaultCase):
+class JSONCase(DefaultCase): # pylint: disable=too-few-public-methods
+    """Class for JSON analysis."""
     def __init__(self, text):
         DefaultCase.__init__(self, text)
         self.req['headers'].update({'Accept': 'application/json'})
         self.req['headers'].update({'X-ACCESS-TOKEN': self.text})
 
         self.match_string = all_of(
-            has_content('success'),
+            has_content(is_json(has_entries('text', contains(text.split())))),
             has_status(200),
         )
 
 
-class JSONCaseData(DefaultCase):
+class JSONCaseData(DefaultCase): # pylint: disable=too-few-public-methods
+    """Class for API analysis."""
     def __init__(self, text, data):
         DefaultCase.__init__(self, text)
         self.req['headers'].update({'Accept': 'application/json'})
@@ -234,38 +233,41 @@ class JSONCaseData(DefaultCase):
         )
 
 def my_token():
-    f = open('/tmp/token.txt', 'r')
-    demo_token = f.read()
-    f.close()
+    """Open and read from file session token."""
+    token_file = open('/tmp/token.txt', 'r')
+    demo_token = token_file.read()
+    token_file.close()
     return demo_token
 
 # Need run it before every tests. We keep demo_token for next requests.
 
-@idparametrize('Server', [Srv(TEST_URL, 433, 'api/login')], fixture=True)
+@idparametrize('api_server', [Srv(TEST_URL, 433, 'api/login')], fixture=True)
 @idparametrize('case', [testclazz(login)
                         for login in [APIUSERTEST]
                         for testclazz in [DefaultCaseLogin]])
-def test_server_login(case, Server):
-    res_req = requests.post(Server.uri, **case.req)
+def test_server_login(case, api_server): # pylint: disable=redefined-outer-name
+    """
+    Maked login request,
+    open and write to file session token.
+    """
+    res_req = requests.post(api_server.uri, **case.req)
     json_str = j.loads(res_req.text)
     demo_token = json_str[DEMO_TOKEN_KEY]
     print (demo_token)
-    f = open('/tmp/token.txt', 'w')
-    f.write(demo_token)
-    f.close()
+    token_file = open('/tmp/token.txt', 'w')
+    token_file.write(demo_token)
+    token_file.close()
 #    assert_that(demo_token, has_length(20))
     assert_that(demo_token)
 
-data = {'orderRef': 147, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '147.00', 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
-
-
+DATA = {'orderRef': 148, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '148.00', 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', 'valueDate': '30/11/2018'}
 
 SERVER_CASES = [
     Srv(TEST_URL, 433, 'api/companies/6XXDG5K6C/orders/create'),
 ]
-@idparametrize('Server', SERVER_CASES, fixture=True)
-@idparametrize('case', [JSONCaseData(my_token(), data)])
-def test_server(case, Server, error_if_wat):
+@idparametrize('api_server', SERVER_CASES, fixture=True)
+@idparametrize('case', [JSONCaseData(my_token(), DATA)])
+def test_server(case, api_server): # pylint: disable=redefined-outer-name
     """
     Step 1:
         Try connect to host, port,
@@ -279,7 +281,7 @@ def test_server(case, Server, error_if_wat):
 #        assert_that(calling(Server.connect), is_not(raises(SOCKET_ERROR)))
 
     with allure.step('Check response'):
-        response = requests.post(Server.uri, **case.req)
+        response = requests.post(api_server.uri, **case.req)
         allure.attach('response_body', response.text)
         allure.attach('response_headers', j.dumps(dict(response.headers), indent=4))
         allure.attach('response_url', response.url)
