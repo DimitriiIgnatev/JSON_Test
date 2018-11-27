@@ -14,9 +14,7 @@ from collections import namedtuple
 import pytest
 from hamcrest import has_entries, has_property, equal_to, \
 all_of, contains_string, assert_that, contains
-# pylint: disable=wildcard-import
 from hamcrest.core.base_matcher import BaseMatcher
-#from hamcrest.core.core.isinstanceof import IsInstanceOf
 from hamcrest.core.helpers.wrap_matcher import wrap_matcher
 import requests
 import allure
@@ -274,7 +272,7 @@ def test_server_login(case, api_server): # pylint: disable=redefined-outer-name
     assert_that(demo_token)
 
 # DATA = my_data()
-DATA = {'orderRef': 151, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '151.00', \
+DATA = {'orderRef': 152, 'marketDirection': 'buy', 'currency': 'EUR', 'amount': '152.00', \
 'counterCurrency': 'USD', 'beneficiaryAccountRef': 'BA-MVBDZBL3Z', 'paymentPurpose': 'services', \
 'valueDate': '30/11/2018'}
 
