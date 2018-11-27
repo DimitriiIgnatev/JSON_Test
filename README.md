@@ -3,7 +3,7 @@ Templates for API Tests
 
 ## For running tests use next lines:
 
-touch token.txt
+touch /tmp/token.txt
 
 export PASS='*'
 
